@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no"/>
+
+    <!-- PAGE TITLE -->
+    <title>Arcadia Dunks for Meals</title>
+
+    <!-- CSS  -->
+    <!-- Libraries -->
+    <link href="{{ url_for('static', filename='css/lib/materialize.min.css') }}" type="text/css" rel="stylesheet" media="screen,projection"/>
+    <link href="{{ url_for('static', filename='css/lib/nv.d3.min.css') }}" type="text/css" rel="stylesheet" media="screen,projection"/>
+    <link href='https://fonts.googleapis.com/css?family=Oleo+Script+Swash+Caps:400,700' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Josefin+Sans:400,100italic,100,300,300italic,400italic,600,600italic,700,700italic' rel='stylesheet' type='text/css'>
+    <!-- Fonts -->
+
+    <!-- Your CSS Here -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" type="text/css" rel="stylesheet" media="screen,projection"/>
+
+</head>
+
+<body>
+
+<div id="dunk-tank-icon" class="clickable hide-on-med-and-down"><a href="https://www.crowdrise.com/ArcadiaDunksforMeals" target="_blank"><img src="{{ url_for('static', filename='img/dunk_tank_icon.png')}} " width="80px"/></a></div>
+
+<!-- MAIN PAGE -->
+<div id="main" class="z-depth-1-half">
+    <!-- Graph Title -->
+    <div class="section center-align titleSection margin-bottom-0">
+        <div class="row margin-bottom-0">
+            <div class="col s12 center-align">
+                <img src="{{ url_for('static', filename='img/arcadia_logo_candy_sm.png')}}" width="150px" />
+            </div>
+        </div>
+        <div class="row margin-top-0">
+            <div class="col s12">
+                <h1 class="background-line light-blue-text text-accent-3 margin-bottom-0" style="margin-top: .5rem;"><span>Dunks for Meals</span></h1>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="section margin-bottom-0">
+        <div class="row margin-bottom-0">
+            <div class="col s12 center-align">
+                <p>
+                    <!--<a class="waves-effect waves-light pink lighten-2 btn rounded-btn">Refresh</a>-->
+                    <a class="waves-effect waves-light pink lighten-2 btn rounded-btn" id="explain-toggle">What is it?</a>
+                    <a class="waves-effect waves-light pink lighten-2 btn rounded-btn" href="https://www.crowdrise.com/ArcadiaDunksforMeals" target="_blank">Donate</a>
+                </p>
+                <p id="explainer" class="grey-text text-darken-4 hidden">On Thursday, August 25th, Arcadians will descend on Kimball Farms for an afternoon of sun and shenanigans.
+                    Also present will be the infamous dunk tank, whose icy waters are the inevitable destiny of 10 unlucky Arcadians.
+                    Vote with your dollars by using the link below to nominate your favorite Arcadian for a date with the tank, by donating to Greater Boston Food Bank.
+                    The 10 Arcadians with the most donations pledged to them will take a turn at the tank.
+                    Use the page below to track who is in the lead. Use your dollars to change the race.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section margin-top-0 margin-bottom-0">
+        <div class="row margin-bottom-0">
+            <div class="col s12 left-align">
+                <!--<h4 class="light-blue-text text-darken-4 section-title">Team Statistics</h4>-->
+                <div class="summary-stats">
+                    <div id="progress-bar-holder">
+                        <div id="progress-bar"></div>
+                        <div id="progress-marker" class="center-align">--</div>
+                    </div>
+                    <div class="center-align grey-text text-darken-3" id="progress-bar-text"><p><strong id="stat-pct-donated-text">--</strong> of Arcadians have donated! Have you?</p></div>
+                    <div class="individual-stats-holder">
+                        <div class="row margin-bottom-0">
+                            <div class="col s10 offset-s1">
+                                <div class="row center-align margin-bottom-0">
+                                    <div class="col s12 m6 l3"><h3 id="stat-pct-donated" class="light-blue-text text-accent-4">--</h3><p>Aracdians Donated</p></div>
+                                    <div class="col s12 m6 l3"><h3 id="stat-arcadians-nominated" class="light-blue-text text-accent-4">--</h3><p>Arcadians Nominated</p></div>
+                                    <div class="col s12 m6 l3"><h3 id="stat-donations-made" class="light-blue-text text-accent-4">--</h3><p>Donations Made</p></div>
+                                    <div class="col s12 m6 l3"><h3 id="stat-money-raised" class="light-blue-text text-accent-4">$----</h3><p>Money Raised</p></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="leaderboard-summary">
+                        <div class="row margin-bottom-0">
+                            <div class="col s10 offset-s1 leaderboard-summary-holder">
+                                <div id="leaderboard-summary-scroll"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="row">
+            <div class="col s12 center-align">
+                <h4 class="light-blue-text text-accent-3 section-title">Arcadian Leaderboard</h4>
+                <div class="leaderboard-holder">
+                    <div class="row">
+                        <div class="col s10 offset-s1">
+                            <div id="leaderboard" class="row center-align">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+        <div class="row">
+            <div class="col s12 center-align">
+                <p>&copy; 2016 Arcadia Healthcare Solutions</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add a second graph by copying/pasting the Graph Holder code (make sure to give a unique ID) -->
+</div>
+
+
+<!-- FOOTER (OPTIONAL) -->
+<!--<footer class="page-footer cyan darken-3">-->
+    <!--<div class="footer-copyright">-->
+        <!--<div class="row">-->
+            <!--<div class="col s6 left-align">-->
+                <!--&lt;!&ndash; ADD YOUR NAME(S) FOR FAME AND GLORY &ndash;&gt;-->
+                <!--An <a  href="http://labs.arcadiaanalytics.com" class="white-text">Arcadia Lab</a>-->
+            <!--</div>-->
+            <!--<div class="col s6 right-align">-->
+                <!--&copy; 2015 Arcadia Solutions-->
+            <!--</div>-->
+        <!--</div>-->
+    <!--</div>-->
+<!--</footer>-->
+
+<!-- SCRIPTS -->
+    <!-- Libraries -->
+    <script src="{{ url_for('static', filename='js/lib/d3.min.js') }}"></script>
+    <script src="{{url_for('static', filename='js/lib/queue.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/lib/jquery-1.10.2.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/lib/materialize.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/lib/materializeColors.js')}}"></script>
+    <script src="{{url_for('static', filename='js/lib/fuzzyset.js')}}"></script>
+
+    <!-- Your Scripts Here -->
+    <script src="{{url_for('static', filename='js/helpers.js')}}"></script>
+    <script src="{{url_for('static', filename='js/draw.js')}}"></script>
+
+    <!-- Initialize Page -->
+    <script src="{{url_for('static', filename='js/init.js')}}"></script>
+
+</body>
+</html>
