@@ -3,6 +3,8 @@
  */
 
 function draw(donationData, employeeData, nameOverride, donationsJson) {
+    var donorCount = d3.nest().key(function(d){return d.donor}).entries(donationData).length;
+    
     donationData = parseDateAll(donationData, "date");
     var endDate = parseDateEasy("8/24/2016 18:00");
 
