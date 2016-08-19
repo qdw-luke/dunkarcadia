@@ -10,14 +10,11 @@ $("#explain-toggle").click(function(){
 
 
 queue()
-//            .defer(d3.csv, "/data/donation_data.csv") // DONATION DATA
-//            .defer(d3.csv, "/data/employee_data.csv") // EMPLOYEE DATA
-    .defer(d3.csv, "http://cors.io/?u=https://arcadia.box.com/shared/static/wvx8r3izv4s81nw0f7xyqkg779dxzv8w.csv") // DONATION DATA
-    .defer(d3.csv, "http://cors.io/?u=https://arcadia.box.com/shared/static/gqotcl15x0t8g09otxno5fpp8yv1ngsc.csv") // EMPLOYEE DATA
-    .defer(d3.csv, "http://cors.io/?u=https://arcadia.box.com/shared/static/3furxn2kqsfbq0nbnr16pqmu70wzb4u5.csv")
+    .defer(d3.csv, "https://9e4431f4eec64bc5b421d99d8e837fb5517ab105.googledrive.com/host/0B76-5MQsSdKxVFc3TW5uSEdfZlE/arcadia-dunk-data/employee_data.csv") // EMPLOYEE DATA
+    .defer(d3.csv, "https://9e4431f4eec64bc5b421d99d8e837fb5517ab105.googledrive.com/host/0B76-5MQsSdKxVFc3TW5uSEdfZlE/arcadia-dunk-data/name_override.csv")
     .await(loadTrigger);
 
-function loadTrigger(e, donations, employees, nameOverride) {
+function loadTrigger(e, employees, nameOverride) {
     $.ajax({
       dataType: "json",
       url: '/crowdwise',
@@ -29,7 +26,7 @@ function loadTrigger(e, donations, employees, nameOverride) {
 }
 
 
-var donatatioStub = $.getJSON('/crowdwise')
+var donatatioStub = $.getJSON('/crowdwise');
 
 function prepDonationData(data) {
     var output = [];
@@ -39,6 +36,7 @@ function prepDonationData(data) {
             amt: d.Amount
             , name: d.CustomDonationQuestions[0].Answer
             , date: unixTimeConvert(d.TransactionDate)
+            , donor: d.DonorLastName + ', ' + d.DonorFirstName
         });
     });
     return output;

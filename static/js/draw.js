@@ -14,9 +14,8 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
     resizeLeaderboard();
 
     function resizeLeaderboard() {
-
-        $("#leaderboard").css("width", ($(".leaderboard-holder").width() *.8)+"px");
-        $("#leaderboard").css("margin-left", ($("#leaderboard").width()%size/2)+"px")
+        $("#leaderboard").css("width", Math.max(size, ($(".leaderboard-holder").width() *.8))+"px");
+        $("#leaderboard").css("margin-left", ($("#leaderboard").width()<size+40?0:$("#leaderboard").width()%size/2)+"px")
             .css("width", (Math.floor($("#leaderboard").width()/size)*size)+"px");
     }
 
@@ -63,11 +62,13 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
     });
 
 //    CALCULATE STATS
-    $("#stat-pct-donated").text(formatPct(donationData.length/employeeData.length));
-    $("#stat-pct-donated-text").text(formatPct(donationData.length/employeeData.length));
-    $("#progress-marker").text(formatPct(donationData.length/employeeData.length));
-    $("#progress-marker").css("left", formatPct(donationData.length/employeeData.length));
-    $("#progress-bar").css("width", formatPct(donationData.length/employeeData.length));
+    var donorCount = d3.nest().key(function(d){return d.donor}).entries(donationData).length;
+
+    $("#stat-pct-donated").text(formatPct(donorCount/employeeData.length));
+    $("#stat-pct-donated-text").text(formatPct(donorCount/employeeData.length));
+    $("#progress-marker").text(formatPct(donorCount/employeeData.length));
+    $("#progress-marker").css("left", formatPct(donorCount/employeeData.length));
+    $("#progress-bar").css("width", formatPct(donorCount/employeeData.length));
 
     $("#stat-arcadians-nominated").text(formatInt(leaderNest.length));
     $("#stat-donations-made").text(formatInt(donationData.length));
@@ -171,7 +172,7 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
             var barW = 36, barP = 24, barH = 162, circleR = 24;
 
             var yScale = d3.scale.linear()
-                .range([0,barH])
+                .range([circleR*2,barH])
                 .domain([0,maxAmt]);
 
             var barBgDiv = d3.select("#leaderboard-summary-scroll").style("height", (barH+circleR/2)+"px").append("div")
