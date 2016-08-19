@@ -36,10 +36,10 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
     resizeLeaderboard();
 
     function resizeLeaderboard() {
-       $("#leaderboard").css("width", Math.max(size, ($(".leaderboard-holder").width() *.8))+"px");
-       $("#leaderboard").css("margin-left", ($("#leaderboard").width()<size+40?0:$("#leaderboard").width()%size/2)+"px")
-           .css("width", (Math.floor($("#leaderboard").width()/size)*size)+"px");
-   }
+        $("#leaderboard").css("width", Math.max(size, ($(".leaderboard-holder").width() *.8))+"px");
+        $("#leaderboard").css("margin-left", ($("#leaderboard").width()<size+40?0:$("#leaderboard").width()%size/2)+"px")
+            .css("width", (Math.floor($("#leaderboard").width()/size)*size)+"px");
+    }
 
     var titleMap = {}, picMap = {}, slackMap = {}, middleMap = {}, nameList = [];
     employeeData.forEach(function(d){
@@ -89,6 +89,8 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
     leaderNest.sort(function(a,b){return d3.descending(a.head, b.heat);});
 
 //    CALCULATE STATS
+    var donorCount = d3.nest().key(function(d){return d.donor}).entries(donationData).length;
+
     $("#stat-pct-donated").text(formatPct(donorCount/employeeData.length));
     $("#stat-pct-donated-text").text(formatPct(donorCount/employeeData.length));
     $("#progress-marker").text(formatPct(donorCount/employeeData.length));

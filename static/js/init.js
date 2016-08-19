@@ -35,10 +35,10 @@ function prepDonationData(data) {
     data.result[0].forEach(function(d){
         if (typeof d.CustomDonationQuestions[0] != 'undefined' && typeof d.CustomDonationQuestions[0].Answer != 'undefined')
         output.push({
-           amt: d.Amount
-           , name: d.CustomDonationQuestions[0].Answer
-           , date: unixTimeConvert(d.TransactionDate)
-           , donor: d.DonorLastName + ', ' + d.DonorFirstName
+            amt: d.Amount
+            , name: d.CustomDonationQuestions[0].Answer
+            , date: unixTimeConvert(d.TransactionDate)
+            , donor: d.DonorLastName + ', ' + d.DonorFirstName
         });
     });
     return output;
