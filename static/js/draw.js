@@ -91,6 +91,7 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
 //    CALCULATE STATS
     var donorCount = d3.nest().key(function(d){return d.donor}).entries(donationData).length;
 
+//    CALCULATE STATS
     $("#stat-pct-donated").text(formatPct(donorCount/employeeData.length));
     $("#stat-pct-donated-text").text(formatPct(donorCount/employeeData.length));
     $("#progress-marker").text(formatPct(donorCount/employeeData.length));
