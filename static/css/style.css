@@ -287,6 +287,14 @@ strong {
     height: 240px;
 }
 
+.fire-circle {
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    top: 116px;
+    left: 32px;
+}
+
 .title-holder {
     position: absolute;
     top: 0;
@@ -421,4 +429,9 @@ svg text.leaderboard-number {
 
 .leaderboard-summary {
     margin-top: 24px;
+}
+
+#countdown .countdown-num {
+    font-size: 3rem;
+    font-weight: 800;
 }

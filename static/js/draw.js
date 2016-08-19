@@ -3,8 +3,28 @@
  */
 
 function draw(donationData, employeeData, nameOverride, donationsJson) {
-    console.log(donationsJson);
     donationData = parseDateAll(donationData, "date");
+    var endDate = parseDateEasy("8/24/2016 18:00");
+
+    $("#end-date").text(d3.time.format("%A, %B %e at %I:%M %p")(endDate));
+
+    var secondsLeft = (endDate-new Date())/1000;
+    var timerUpdate = setInterval(function(){
+        secondsLeft = (endDate-new Date())/1000;
+        var days = Math.floor(secondsLeft/(60*60*24));
+        var hours = Math.floor((secondsLeft-(days*60*60*24))/(60*60));
+        var minutes = Math.floor((secondsLeft-(days*60*60*24+hours*60*60))/60);
+        var seconds = Math.floor((secondsLeft-(days*60*60*24+hours*60*60+minutes*60)));
+
+        var html = "<span class='countdown-num'>"+days+"</span>D "
+            + "<span class='countdown-num'>"+hours+"</span>H "
+            + "<span class='countdown-num'>"+minutes+"</span>M "
+            + "<span class='countdown-num'>"+seconds+"</span>S";
+
+        $("#countdown").html(html);
+    }, 1000);
+
+
 
     var employeeCount = employeeData.length;
     var size = 218;
@@ -49,7 +69,6 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
     });
     console.log(nameMatches);
 
-
     var leaderNest = d3.nest().key(function(d){return d.matchedName}).entries(donationData);
     leaderNest.forEach(function(d){
         d.count = d.values.length;
@@ -59,11 +78,15 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
         d.title = typeof titleMap[d.name.toLowerCase()]=='undefined'?"Chief Dunking Officer":titleMap[d.name.toLowerCase()];
         d.img = typeof picMap[d.name.toLowerCase()]=='undefined'?"http://vignette2.wikia.nocookie.net/ronaldmcdonald/images/a/a9/Grimace.jpg":picMap[d.name.toLowerCase()];
         d.slack = typeof slackMap[d.name.toLowerCase()]=='undefined'?"":slackMap[d.name.toLowerCase()];
+
+        d.heat = d3.sum(d.values, function(dd){return Math.max(0, 1-(new Date()- new Date(dd.date))/(1000*60*60*24))});
+        d.donationsIn24 = d.values.filter(function(dd){return (new Date()- new Date(dd.date))/(1000*60*60*24)<1}).length;
+
     });
 
-//    CALCULATE STATS
-    var donorCount = d3.nest().key(function(d){return d.donor}).entries(donationData).length;
+    leaderNest.sort(function(a,b){return d3.descending(a.head, b.heat);});
 
+//    CALCULATE STATS
     $("#stat-pct-donated").text(formatPct(donorCount/employeeData.length));
     $("#stat-pct-donated-text").text(formatPct(donorCount/employeeData.length));
     $("#progress-marker").text(formatPct(donorCount/employeeData.length));
@@ -83,7 +106,15 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
         .range([0,270])
         .domain([0, maxAmt]);
 
+    var heatColorScale = d3.scale.linear()
+        .range(['#ff9800', '#f44336'])
+        .domain(d3.extent(leaderNest, function(d){return d.heat}));
+    var heatOpacityScale = d3.scale.linear()
+        .range([.3,1])
+        .domain(d3.extent(leaderNest, function(d){return d.heat}));
+
     var div = d3.select("#leaderboard").html("");
+
     leaderNest.forEach(function(d,i){
 //        var size = $("#leaderboard").width()/4.1;
         var circleScale = .6;
@@ -143,6 +174,14 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
 
         var endX = getXY(d.amt).x, endY = getXY(d.amt).y
             , tgtX = getXY(qualAmt).x, tgtY = getXY(qualAmt).y;
+
+        if (d.heat > 0) {
+            circleHolder.append("div")
+                .attr("class","fire-circle")
+                .style("color", heatColorScale(d.heat))
+                .style("opacity", heatOpacityScale(d.heat))
+                .append("i").attr("class","material-icons").text("whatshot");
+        }
 
         var tgtCircle = g.append("circle").attr("class","tgt-circle")
             .attr("r", 6)
@@ -214,6 +253,11 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
             } else {
                 tooltip = tooltip + "Uh oh! " + firstName + " needs " + formatCurrency(qualAmt-d.amt) + " more in donations to qualify!"
                     + "\n" + "What are you waiting for?! Go donate!";
+            }
+            if (d.heat > 0 && d.donationsIn24 > 1) {
+                tooltip = tooltip + "\n \n" + firstName.toUpperCase() + " IS ON FIRE!! " + formatInt(d.donationsIn24) + " donation in the past 24 hours!"
+            } else if (d.heat > 0 && d.donationsIn24 == 1) {
+                tooltip = tooltip + "\n \n" + firstName + " is heating up! " + formatInt(d.donationsIn24) + " donation in the past 24 hours!"
             }
             return tooltip
         }

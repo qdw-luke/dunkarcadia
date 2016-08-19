@@ -66,17 +66,16 @@ function parseDateAll(data, dateField) {
 
 function parseDateEasy(date) {
     var curDateFormat;
+    var outputDate;
     dateFormats.forEach(function(d){
         if (parseDate(date, d)!=null) {
             curDateFormat = d;
         }
     });
     if (typeof curDateFormat != 'undefined') {
-        data.forEach(function(d){
-            d[dateField] = parseDateFast(d[dateField], curDateFormat);
-        });
+        outputDate = parseDateFast(date, curDateFormat);
     }
-    return data;
+    return outputDate;
 }
 
 var dateMap = {};

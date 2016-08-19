@@ -19,7 +19,6 @@ function loadTrigger(e, employees, nameOverride) {
       dataType: "json",
       url: '/crowdwise',
       success: function(data) {
-        console.log(data);
         draw( prepDonationData(data), employees, nameOverride);
       }
     });    
