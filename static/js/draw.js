@@ -3,6 +3,8 @@
  */
 
 function draw(donationData, employeeData, nameOverride, donationsJson) {
+    var donorCount = d3.nest().key(function(d){return d.donor}).entries(donationData).length;
+    
     donationData = parseDateAll(donationData, "date");
     var endDate = parseDateEasy("8/24/2016 18:00");
     donationData = donationData.filter(function(d){return new Date(d.date) <= endDate});
@@ -94,6 +96,9 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
     var totalAmt = d3.sum(leaderNest, function(d){return d.amt});
     var pctToTgt = formatPct(Math.min(totalAmt/dollarTarget,1));
     tankSpots = dollarTarget>totalAmt?10:15;
+
+//    CALCULATE STATS
+    var donorCount = d3.nest().key(function(d){return d.donor}).entries(donationData).length;
 
 //    CALCULATE STATS
     $("#stat-pct-donated").text(formatPct(donorCount/employeeData.length));
