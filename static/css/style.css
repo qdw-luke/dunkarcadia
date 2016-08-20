@@ -390,10 +390,10 @@ svg text.leaderboard-number {
     position: absolute;
     background: repeating-linear-gradient(
             45deg,
-            #ffcc80   ,
-            #ffcc80    5px,
-            #ffa726    5px,
-            #ffa726    10px
+            #90a4ae   ,
+            #90a4ae    5px,
+            #607d8b    5px,
+            #607d8b    10px
     );
     box-shadow: 0 5px 10px rgba(0,0,0,.2);
 }
@@ -431,7 +431,13 @@ svg text.leaderboard-number {
     margin-top: 24px;
 }
 
+#countdown {
+    font-size: 1rem;
+    font-weight: 400;
+}
+
 #countdown .countdown-num {
-    font-size: 3rem;
+    font-size: 2rem;
     font-weight: 800;
 }
+

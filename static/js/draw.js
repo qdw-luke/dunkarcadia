@@ -5,26 +5,33 @@
 function draw(donationData, employeeData, nameOverride, donationsJson) {
     donationData = parseDateAll(donationData, "date");
     var endDate = parseDateEasy("8/24/2016 18:00");
+    donationData = donationData.filter(function(d){return new Date(d.date) <= endDate});
+    var dollarTarget = 5772;
+    var tankSpots = 10;
 
     $("#end-date").text(d3.time.format("%A, %B %e at %I:%M %p")(endDate));
 
     var secondsLeft = (endDate-new Date())/1000;
     var timerUpdate = setInterval(function(){
-        secondsLeft = (endDate-new Date())/1000;
-        var days = Math.floor(secondsLeft/(60*60*24));
-        var hours = Math.floor((secondsLeft-(days*60*60*24))/(60*60));
-        var minutes = Math.floor((secondsLeft-(days*60*60*24+hours*60*60))/60);
-        var seconds = Math.floor((secondsLeft-(days*60*60*24+hours*60*60+minutes*60)));
+        if (new Date()<=endDate) {
+            secondsLeft = (endDate-new Date())/1000;
+            var days = Math.floor(secondsLeft/(60*60*24));
+            var hours = Math.floor((secondsLeft-(days*60*60*24))/(60*60));
+            var minutes = Math.floor((secondsLeft-(days*60*60*24+hours*60*60))/60);
+            var seconds = Math.floor((secondsLeft-(days*60*60*24+hours*60*60+minutes*60)));
 
-        var html = "<span class='countdown-num'>"+days+"</span>D "
-            + "<span class='countdown-num'>"+hours+"</span>H "
-            + "<span class='countdown-num'>"+minutes+"</span>M "
-            + "<span class='countdown-num'>"+seconds+"</span>S";
+            var html = "<span class='countdown-num'>"+days+"</span>D "
+                + "<span class='countdown-num'>"+hours+"</span>H "
+                + "<span class='countdown-num'>"+minutes+"</span>M "
+                + "<span class='countdown-num'>"+seconds+"</span>S";
 
-        $("#countdown").html(html);
+            $("#countdown").html(html);
+        } else {
+            $("#countdown").html("<span class='countdown-num'>Bidding closed!!</span>");
+            $("#countdown-sub").html("Live donations will continue at Kimball Farms for all sorts of bonuses, so come ready!");
+        }
+
     }, 1000);
-
-
 
     var employeeCount = employeeData.length;
     var size = 218;
@@ -84,23 +91,32 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
 
     });
 
-    leaderNest.sort(function(a,b){return d3.descending(a.head, b.heat);});
+    var totalAmt = d3.sum(leaderNest, function(d){return d.amt});
+    var pctToTgt = formatPct(Math.min(totalAmt/dollarTarget,1));
+    tankSpots = dollarTarget>totalAmt?10:15;
 
 //    CALCULATE STATS
     $("#stat-pct-donated").text(formatPct(donorCount/employeeData.length));
-    $("#stat-pct-donated-text").text(formatPct(donorCount/employeeData.length));
-    $("#progress-marker").text(formatPct(donorCount/employeeData.length));
-    $("#progress-marker").css("left", formatPct(donorCount/employeeData.length));
-    $("#progress-bar").css("width", formatPct(donorCount/employeeData.length));
+    $("#stat-pct-donated-text").text(pctToTgt);
+    $("#progress-marker").text(pctToTgt);
+    $("#progress-marker").css("left", pctToTgt);
+    $("#progress-bar").css("width", pctToTgt);
+    $("#progress-bar-text-target").text(formatCurrency(dollarTarget));
 
     $("#stat-arcadians-nominated").text(formatInt(leaderNest.length));
     $("#stat-donations-made").text(formatInt(donationData.length));
-    $("#stat-money-raised").text(formatCurrency(d3.sum(leaderNest, function(d){return d.amt})));
+    $("#stat-money-raised").text(formatCurrency(totalAmt));
+
+    if (totalAmt>=dollarTarget) {
+        d3.select("#progress-bar-text").html("")
+            .append("p").append("strong")
+            .text("YES!! We've hit " + formatCurrency(dollarTarget) + " and unlocked an additional 5 spots on the tank!!")
+    }
 
     leaderNest.sort(function(a,b){return d3.descending(a.amt, b.amt)});
 
     var maxAmt = d3.max(leaderNest, function(d){return d.amt});
-    var qualAmt = leaderNest[leaderNest.length>10?9:(leaderNest.length-1)].amt;
+    var qualAmt = leaderNest[leaderNest.length>tankSpots?(tankSpots-1):(leaderNest.length-1)].amt;
 
     var degScale = d3.scale.linear()
         .range([0,270])
@@ -120,6 +136,7 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
         var circleScale = .6;
 
         var lDiv = div.append("div").attr("class","leader").style("width", size+"px");
+        var flameOffset = {x: 32, y: -64};
 
         var titleDiv = lDiv.append("div").attr("class","title-holder").style("width","100%");
         var name = titleDiv.append("p").attr("class","leader-name").text(d.name);
@@ -129,12 +146,18 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
             .attr("data-tooltip", function() { return getTooltip(); })
             .attr("data-position", "top")
             .on("mouseover", function(){
-                d3.select(this).selectAll(".tgt-circle").transition().attr("r", 12);
+                d3.select(this).selectAll(".tgt-circle").transition().attr("r", 8);
                 d3.select(this).selectAll(".pos-circle").transition().attr("r", 24);
+                d3.select(this).selectAll(".flame").transition().attr("width", 48);
+                d3.select(this).selectAll(".flame-holder").transition()
+                    .attr("transform","translate("+((size*circleScale *.5)+endX+flameOffset.x-12)+", "+((size*circleScale *.5)+endY+flameOffset.y-12)+")");
             })
             .on("mouseout", function(){
-                d3.select(this).selectAll(".tgt-circle").transition().attr("r", 6);
+                d3.select(this).selectAll(".tgt-circle").transition().attr("r", 4);
                 d3.select(this).selectAll(".pos-circle").transition().attr("r", 12);
+                d3.select(this).selectAll(".flame").transition().attr("width", 24);
+                d3.select(this).selectAll(".flame-holder").transition()
+                    .attr("transform","translate("+((size*circleScale *.5)+endX+flameOffset.x)+", "+((size*circleScale *.5)+endY+flameOffset.y)+")");
             });
 
         var arcWidth = 8;
@@ -151,7 +174,7 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
 //        DRAW DONUT
         var svg = circleHolder.append("svg").attr("class","donut-holder")
             .style("width", size+"px").style("height",size+"px");
-        var g = svg.append("g")
+        var pathG = svg.append("g")
             .attr("transform", "translate("+(size *.5*(1-circleScale))+", 0)");
 
 
@@ -161,9 +184,9 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
             .startAngle(0*(Math.PI/180))
             .endAngle(degScale(d.amt)*(Math.PI/180));
 
-        g.append("path")
+        pathG.append("path")
             .attr("class","donut")
-            .style("fill", d.amt>=qualAmt?'#81c784':'#ffb74d')
+            .style("fill", d.amt>=qualAmt?'#81c784':'#90a4ae')
             .attr("d",arc)
             .attr("transform", "translate("+(size*circleScale *.5)+","+(size*circleScale *.5)+")");
 
@@ -175,29 +198,58 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
         var endX = getXY(d.amt).x, endY = getXY(d.amt).y
             , tgtX = getXY(qualAmt).x, tgtY = getXY(qualAmt).y;
 
-        if (d.heat > 0) {
-            circleHolder.append("div")
-                .attr("class","fire-circle")
-                .style("color", heatColorScale(d.heat))
-                .style("opacity", heatOpacityScale(d.heat))
-                .append("i").attr("class","material-icons").text("whatshot");
+//        if (d.heat > 0) {
+//            circleHolder.append("div")
+//                .attr("class","fire-circle")
+//                .style("color", heatColorScale(d.heat))
+//                .style("opacity", heatOpacityScale(d.heat))
+//                .append("i").attr("class","material-icons").text("whatshot");
+//        }
+
+
+        if (d.heat>0) {
+            var flameG = svg.append("g").attr("class","flame-holder")
+                .attr("transform","translate("+((size*circleScale *.5)+endX+flameOffset.x)+", "+((size*circleScale *.5)+endY+flameOffset.y)+")");
+            d3.xml("https://9e4431f4eec64bc5b421d99d8e837fb5517ab105.googledrive.com/host/0B76-5MQsSdKxVFc3TW5uSEdfZlE/flame.svg")
+                .mimeType("image/svg+xml").get(function(error, xml) {
+                    if (error) throw error;
+                    var flameSvg = xml.getElementsByTagName("svg")[0];
+                    flameG.node().appendChild(flameSvg);
+                    var thisFlame = flameG.select("svg").attr("class","flame");
+                    thisFlame.attr("width",24).attr("height",100);
+                    thisFlame.style("fill", heatColorScale(d.heat))
+//                        .style("opacity",heatOpacityScale(d.heat))
+                    ;
+
+                });
         }
 
-        var tgtCircle = g.append("circle").attr("class","tgt-circle")
-            .attr("r", 6)
+        var circleG = svg.append("g")
+            .attr("transform", "translate("+(size *.5*(1-circleScale))+", 0)");
+
+        var tgtCircle = circleG.append("circle").attr("class","tgt-circle")
+            .attr("r", 4)
             .attr("cx", (size*circleScale *.5)+tgtX)
             .attr("cy", (size*circleScale *.5)+tgtY)
-            .style("fill", '#b0bec5')
+            .style("fill", '#81c784')
             .style("stroke", "#FFF").style("stroke-width", "1px");
 
-        var circle = g.append("circle").attr("class","pos-circle")
+        var circle = circleG.append("circle").attr("class","pos-circle")
             .attr("r", 12)
             .attr("cx", (size*circleScale *.5)+endX)
             .attr("cy", (size*circleScale *.5)+endY)
-            .style("fill", d.amt>=qualAmt?'#00c853':'#ff6d00')
+            .style("fill", function() {
+                    if (d.heat>0) {
+                        return heatColorScale(d.heat);
+                    } else {
+                        return d.amt>=qualAmt?'#00c853':'#607d8b'
+                    }
+                }
+            )
             .style("stroke", "#FFF").style("stroke-width", "1px");
 
-        var text = g.append("text").attr("class","leaderboard-number")
+        var text = circleG.append("text").attr("class","leaderboard-number")
+            .classed("fire-number", d.heat>0)
             .attr("dx", (size*circleScale *.5)+endX)
             .attr("dy", (size*circleScale *.5)+endY+5)
             .attr("text-anchor", "middle")
@@ -261,7 +313,6 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
             }
             return tooltip
         }
-
     });
 
     $('.tooltipped').tooltip({delay: 50});
