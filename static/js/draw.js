@@ -320,6 +320,121 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
         }
     });
 
+
+//    DONATION HISTORY
+    var dateExtent = d3.extent(donationData, function(d){return new Date(d.date)});
+    var daySpan = (dateExtent[1]-dateExtent[0])/(1000*60*60*24);
+    var xPerDay = 200
+        , rSize = 18
+        , ySize = 600;
+    var donationHxCanvas = d3.select("#donation-history").style("width", (xPerDay*daySpan+(rSize*2))+"px").style("height", (ySize+(rSize*4))+"px");
+    var xTimeScale = d3.scale.linear()
+        .range([rSize, rSize+(xPerDay*daySpan)])
+        .domain(dateExtent);
+    var yScale = d3.scale.linear()
+        .range([rSize+ySize, rSize*4])
+        .domain([0, d3.max(donationData, function(d){return d.amt})]);
+
+    leaderNest.forEach(function(d,i){
+        d.values.forEach(function(dd){
+
+            var donationCircle = donationHxCanvas.append("div")
+                .attr("class","donation clickable tooltipped donation-target-"+i)
+                .style("background-image", "url('"+ d.img + "')")
+                .style("left", xTimeScale(new Date(dd.date))+"px")
+                .style("top", yScale(dd.amt)+"px")
+                .attr("data-tooltip", function(){
+                    return d.name + "\n\n" + formatCurrency(dd.amt) + " donated \n on " + d3.time.format("%A, %B %e at %I:%M %p")(new Date(dd.date));
+                }).attr("data-position", "top")
+                .on("mouseover", function(){donationHxCanvas.selectAll(".donation-target-"+i).classed("hover",true)})
+                .on("mouseout", function(){donationHxCanvas.selectAll(".donation-target-"+i).classed("hover",false)});
+        });
+    });
+
+//    HORSE RACE
+    var horseRaceCanvas = d3.select("#horse-race").style("width", (xPerDay*daySpan+(rSize*2))+"px").style("height", (ySize+(rSize*4))+"px");
+    var horseRaceSvg = horseRaceCanvas
+        .append("svg").style("width", (xPerDay*daySpan+(rSize*2))+"px").style("height", (ySize+(rSize*4))+"px");
+
+    var cumYScale = d3.scale.linear()
+        .range([rSize+ySize, rSize*4])
+        .domain([0, d3.max(leaderNest, function(d){return d.amt})]);
+
+    var line = d3.svg.line()
+        .x(function(d){return xTimeScale(new Date(d.date))})
+        .y(function(d){return cumYScale(d.amt)});
+
+    leaderNest.forEach(function(d){
+        var trendData = [];
+        donationData.forEach(function(dd){
+            trendData.push({
+                date: new Date(dd.date)
+                , amt: d3.sum(d.values.filter(function(ddd){return new Date(ddd.date)<=new Date(dd.date)}), function(ddd){return +ddd.amt})
+            });
+        });
+        d.trendData = trendData;
+    });
+
+    leaderNest.forEach(function(d,i){
+        horseRaceSvg.append("path")
+            .datum(d.trendData)
+            .attr("class","line leader leader-"+i)
+            .classed("top-rank", d.amt>=qualAmt)
+            .attr("d",line)
+            .on("mouseover", function(){horseRaceCanvas.selectAll(".leader-"+i).classed("hover",true)})
+            .on("mouseout", function(){horseRaceCanvas.selectAll(".leader-"+i).classed("hover",false)});
+
+
+        d.values.forEach(function(dd){
+            var cumAmt = d3.sum(d.values.filter(function(ddd){return new Date(ddd.date)<=new Date(dd.date)}), function(ddd){return +ddd.amt});
+            var donationCircle = horseRaceCanvas.append("div")
+                .attr("class","donation clickable tooltipped leader leader-"+i)
+                .style("background-image", "url('"+ d.img + "')")
+                .style("left", xTimeScale(new Date(dd.date))+"px")
+                .style("top", cumYScale(cumAmt)+"px")
+                .attr("data-position", "top")
+                .attr("data-tooltip", function(){
+                    return d.name + "\n\n" + formatCurrency(dd.amt) + " donated \n on " + d3.time.format("%A, %B %e at %I:%M %p")(new Date(dd.date))
+                        + "\n for a total of " + formatCurrency(cumAmt);
+                })
+                .on("mouseover", function(){horseRaceCanvas.selectAll(".leader-"+i).classed("hover",true)})
+                .on("mouseout", function(){horseRaceCanvas.selectAll(".leader-"+i).classed("hover",false)});
+        });
+
+        var finalDonationCircle = horseRaceCanvas.append("div")
+            .attr("class","donation clickable tooltipped leader leader-"+i)
+            .style("background-image", "url('"+ d.img + "')")
+            .style("left", xTimeScale(dateExtent[1])+"px")
+            .style("top", cumYScale(d.amt)+"px")
+            .attr("data-position", "top")
+            .attr("data-tooltip", function(){
+                return d.name + "\n\n Current Rank: " + (i+1) + "\nTotal Donated: " + formatCurrency(d.amt);
+            })
+            .on("mouseover", function(){horseRaceCanvas.selectAll(".leader-"+i).classed("hover",true)})
+            .on("mouseout", function(){horseRaceCanvas.selectAll(".leader-"+i).classed("hover",false)});
+    });
+
+
+    var daySpanStart = new Date(dateExtent[0]);
+    for (i=0; i<Math.ceil(daySpan); i++) {
+        var daySpanEnd = d3.min([new Date(daySpanStart.getFullYear(), daySpanStart.getMonth(), daySpanStart.getDate(), 23,59,59), new Date(dateExtent[1])]);
+
+        donationHxCanvas.append("div").attr("class","date-label")
+            .style("left",(xTimeScale(daySpanStart)+rSize)+"px")
+            .style("width", (xTimeScale(daySpanEnd)-xTimeScale(daySpanStart))+"px")
+            .style("top",(ySize+rSize*2)+"px")
+            .text(d3.time.format("%A, %B %e")(new Date(daySpanStart)));
+
+        horseRaceCanvas.append("div").attr("class","date-label")
+            .style("left",(xTimeScale(daySpanStart)+rSize)+"px")
+            .style("width", (xTimeScale(daySpanEnd)-xTimeScale(daySpanStart))+"px")
+            .style("top",(ySize+rSize*2)+"px")
+            .text(d3.time.format("%A, %B %e")(new Date(daySpanStart)));
+        daySpanStart = new Date(daySpanStart.getFullYear(), daySpanStart.getMonth(), daySpanStart.getDate()+1, 0,0,0);
+    }
+
+
+
     $('.tooltipped').tooltip({delay: 50});
 
 
