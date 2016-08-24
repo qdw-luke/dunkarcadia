@@ -510,3 +510,52 @@ svg text.leaderboard-number {
 #horse-race .line.hover {
     stroke-width: 6px;
 }
+
+#ball-allotment-holder {
+    overflow-x: scroll;
+    overflow-y: scroll;
+    max-height: 600px;
+}
+
+#ball-allotment-holder .table-cell {
+    float: left;
+}
+#ball-allotment-holder .ball {
+    width: 12px;
+    height: 12px;
+    margin-right: 4px;
+    margin-top: .3rem;
+    background: repeating-linear-gradient(
+            45deg,
+            #ffcc80  ,
+            #ffcc80   3px,
+            #ffa726   3px,
+            #ffa726   6px
+    );
+    border-radius: 6px;
+    box-shadow: 0 3px 6px rgba(0,0,0,.2);
+    float: left;
+}
+
+#ball-allotment-holder .ball.dunk-now {
+    background: repeating-linear-gradient(
+            45deg,
+            #ef9a9a   ,
+            #ef9a9a 3px,
+            #f44336 3px,
+            #f44336 6px
+    );
+}
+
+
+#ball-allotment-holder .strong {
+    font-weight: 800;
+}
+
+#ball-allotment-holder .table-row {
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #cfd8dc ;
+    height: 32px;
+}
+

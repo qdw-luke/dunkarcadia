@@ -7,7 +7,7 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
     
     donationData = parseDateAll(donationData, "date");
     var endDate = parseDateEasy("8/24/2016 18:00");
-    donationData = donationData.filter(function(d){return new Date(d.date) <= endDate});
+//    donationData = donationData.filter(function(d){return new Date(d.date) <= endDate});
     var dollarTarget = 5772;
     var tankSpots = 10;
 
@@ -30,7 +30,7 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
             $("#countdown").html(html);
         } else {
             $("#countdown").html("<span class='countdown-num'>Bidding closed!!</span>");
-            $("#countdown-sub").html("Live donations will continue at Kimball Farms for all sorts of bonuses, so come ready!");
+            $("#countdown-sub").html("Continue to donate to add more balls and increase the chances of a dunk! <br/>Donate $100 exactly to guarantee a dunk! <br/>Live donations will continue at Kimball Farms for all sorts of bonuses, so come ready!");
         }
 
     }, 1000);
@@ -81,7 +81,9 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
     var leaderNest = d3.nest().key(function(d){return d.matchedName}).entries(donationData);
     leaderNest.forEach(function(d){
         d.count = d.values.length;
-        d.amt = d3.sum(d.values, function(d){return d.amt});
+        d.amt = d3.sum(d.values.filter(function(dd){return new Date(dd.date) <= endDate}), function(dd){return dd.amt});
+        d.totalAmount = d3.sum(d.values, function(dd){return dd.amt});
+        d.dunkNow = d.values.filter(function(dd){return new Date(dd.date) > endDate && dd.amt == 100}).length>=1;
         d.name = d.key;
         d.name = typeof nameMap[d.name.toLowerCase()]=='undefined'? d.name:nameMap[d.name.toLowerCase()];
         d.title = typeof titleMap[d.name.toLowerCase()]=='undefined'?"Chief Dunking Officer":titleMap[d.name.toLowerCase()];
@@ -90,6 +92,8 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
 
         d.heat = d3.sum(d.values, function(dd){return Math.max(0, 1-(new Date()- new Date(dd.date))/(1000*60*60*24))});
         d.donationsIn24 = d.values.filter(function(dd){return (new Date()- new Date(dd.date))/(1000*60*60*24)<1}).length;
+
+        d.balls = 5+Math.floor((d.totalAmount-d.amt)/5)*3;
 
     });
 
@@ -110,7 +114,7 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
 
     $("#stat-arcadians-nominated").text(formatInt(leaderNest.length));
     $("#stat-donations-made").text(formatInt(donationData.length));
-    $("#stat-money-raised").text(formatCurrency(totalAmt));
+    $("#stat-money-raised").text(formatCurrency(d3.sum(leaderNest, function(d){return d.totalAmount})));
 
     if (totalAmt>=dollarTarget) {
         d3.select("#progress-bar-text").html("")
@@ -434,6 +438,43 @@ function draw(donationData, employeeData, nameOverride, donationsJson) {
     }
 
 
+//    DRAW BALLS
+
+    var maxBalls = d3.max(leaderNest, function(d){return d.balls})+1;
+    var totalW = 240+60+120+120+60+(maxBalls*16);
+    var ballAllotmentHolder = d3.select("#ball-allotment-holder");
+
+    var ballHeader = ballAllotmentHolder.append("div").attr("class","table-row strong").style("width", totalW+"px");
+    ballHeader.append("div").attr("class","table-cell left-align").style("width","240px").text("Name");
+    ballHeader.append("div").attr("class","table-cell").style("width","60px").text("Rank");
+    ballHeader.append("div").attr("class","table-cell").style("width","120px").text("$ Before 6p");
+    ballHeader.append("div").attr("class","table-cell").style("width","120px").text("$ After 6p");
+    ballHeader.append("div").attr("class","table-cell").style("width","60px").text("Balls");
+
+    leaderNest.forEach(function(d,i){
+        var balls = 5+Math.floor((d.totalAmount-d.amt)/5)*3;
+        var thisBallHolder = ballAllotmentHolder.append("div").attr("class","table-row").style("width", totalW+"px");
+        thisBallHolder.append("div").attr("class","table-cell left-align strong").style("width","240px").text(d.name);
+        thisBallHolder.append("div").attr("class","table-cell").style("width","60px").text(formatInt(i+1));
+        thisBallHolder.append("div").attr("class","table-cell").style("width","120px").text(formatCurrency(d.amt));
+        thisBallHolder.append("div").attr("class","table-cell").style("width","120px").text(formatCurrency(d.totalAmount-d.amt));
+        if (d.amt>=qualAmt) {
+            thisBallHolder.append("div").attr("class","table-cell").style("width","60px").text(formatInt(balls));
+            var ballsGraphic = thisBallHolder.append("div").attr("class","table-cell")
+                .style("width",((balls+1)*16)+"px");
+            if (d.dunkNow) {
+                ballsGraphic.append("div").attr("class","ball dunk-now tooltipped clickable")
+                    .attr("data-position","top")
+                    .attr("data-tooltip", "Yes! With a donation of $100 \nafter the close of the bidding," +
+                        "\n" + d.name + " qualifies for an ON-DEMAND DUNK!!");
+            }
+            for (i=0;i<balls;i++) {
+                ballsGraphic.append("div").attr("class","ball");
+            }
+        }
+    });
+
+    if (new Date() <= endDate) {d3.select("#ball-allotment-section").classed("hidden",true);}
 
     $('.tooltipped').tooltip({delay: 50});
 
